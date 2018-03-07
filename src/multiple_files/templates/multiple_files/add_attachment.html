@@ -49,7 +49,6 @@
                            success: function(data) {
                                id = data.id;
                                myDropzone.processQueue();
-                               window.location.replace("/multiple_files")
                            }
                           // handle errror needed
                       });
@@ -57,19 +56,35 @@
 
                     // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
                     // of the sending event because uploadMultiple is set to true.
+                    // read more about event in docs
                     this.on("sendingmultiple", function(file, xhr, formData) {
                       // Gets triggered when the form is actually being sent.
                       // Hide the success button or the complete form.
                         formData.append("id", id);
                     });
+                    this.on("processing", function(file){
+                        // on each file proccess
+                    })
+                      
+                    this.on("success", function(file, response) {
+                        // on each file success
+                    })
                     this.on("successmultiple", function(files, response) {
                       // Gets triggered when the files have successfully been sent.
                       // Redirect user or notify of success.
+        
                     });
                     this.on("errormultiple", function(files, response) {
                       // Gets triggered when there was an error sending the files.
                       // Maybe show form again, and notify user of error
                     });
+                    this.on("completemultiple", function(files, response) {
+                      // console.log("complete")
+                    });
+                    this.on("queuecomplete", function(files, response) {
+                        window.location.replace("/multiple_files")
+                    });
+                      
                   }
             });
        })

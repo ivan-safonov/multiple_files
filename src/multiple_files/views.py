@@ -28,7 +28,6 @@ class AttachmentView(View):
     
     def post(self, request):
         obj_id = int(request.POST.get('id', ''))
-        print request.FILES
         for a_file in request.FILES.itervalues():
             instance = Attachment(
                 attachment=a_file
