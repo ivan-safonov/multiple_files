@@ -5,13 +5,75 @@
 {% block title %}Adding Multiple Files{% endblock %}
 
 {% block content %}
-    <form action="" method="post" enctype="multipart/form-data">
+    <form action="" method="post" enctype="multipart/form-data" id="object" style="padding: 50px">
         {% csrf_token %}
-        <p>
-            <label for="id_parent_id">Parent ID:</label>
-            <input id="id_parent_id" type="text" maxlength="18" name="parent_id">
-        </p>
-        <input type="file" name="myfiles" multiple>
-        <button type="submit">{% trans "Save" %}</button>
+        <label for="obj_name">Name</label><input type="text" id="obj_name" name="name"><br>
+        <label for="obj_desc">Description</label><input type="text" id="obj_desc" name="description"><br>
+        <p>some other fields...</p>
     </form>
+
+   <form id="my-dropzone" class="dropzone" url="add-attachment/">
+      <div class="dropzone-previews"></div> <!-- this is were the previews should be shown. -->
+
+      <button type="submit">Submit data and files!</button>
+    </form>
+    
+    <script>
+        Dropzone.autoDiscover = false;
+        var id = '';
+        
+        $(document).ready(function () {
+            $("#my-dropzone").dropzone({
+                  url: "add_attachment/",
+                  autoProcessQueue: false,
+                  uploadMultiple: true,
+                  parallelUploads: 100,
+                  maxFiles: 100,
+                  headers: {
+                    'X-CSRFToken': $('input[name=csrfmiddlewaretoken]').val()
+                  },
+
+                  // The setting up of the dropzone
+                  init: function() {
+                    var myDropzone = this;
+
+                    // First change the button to actually tell Dropzone to process the queue.
+                    this.element.querySelector("button[type=submit]").addEventListener("click", function(e) {
+                      // Make sure that the form isn't actually being sent.
+                      e.preventDefault();
+                      e.stopPropagation();
+                      $.ajax({
+                           method: "POST",
+                           url: "create_object/",
+                           data: $("#object").serialize(),  // serializes the form's elements.
+                           success: function(data) {
+                               id = data.id;
+                               myDropzone.processQueue();
+                               window.location.replace("/multiple_files")
+                           }
+                          // handle errror needed
+                      });
+                    });
+
+                    // Listen to the sendingmultiple event. In this case, it's the sendingmultiple event instead
+                    // of the sending event because uploadMultiple is set to true.
+                    this.on("sendingmultiple", function(file, xhr, formData) {
+                      // Gets triggered when the form is actually being sent.
+                      // Hide the success button or the complete form.
+                        formData.append("id", id);
+                    });
+                    this.on("successmultiple", function(files, response) {
+                      // Gets triggered when the files have successfully been sent.
+                      // Redirect user or notify of success.
+                    });
+                    this.on("errormultiple", function(files, response) {
+                      // Gets triggered when there was an error sending the files.
+                      // Maybe show form again, and notify user of error
+                    });
+                  }
+            });
+       })
+
+
+    </script>
 {% endblock %}

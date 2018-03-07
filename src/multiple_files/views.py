@@ -3,27 +3,38 @@
 from django.shortcuts import redirect, render
 from django.shortcuts import render_to_response
 
-from .models import Attachment
+from django.http import HttpResponse
+from django.http import JsonResponse
+from django.views.generic import View
 
+from .models import Attachment, Object
 
-def add_attachment(request):
-    if request.method == "POST":
-        parent_id = request.POST['parent_id']
-        files = request.FILES.getlist('myfiles')
-        for number, a_file in enumerate(files):
+class ObjectView(View):
+    
+    def post(self, request):
+        name = request.POST.get('name', '')
+        desc = request.POST.get('description', '')
+        
+        obj = Object.objects.create(name=name, description=desc)
+        if obj is not None:
+            return JsonResponse({'id':obj.id})
+        else:
+            return JsonResponse({'status':'error', 'message':'cant create object'}, status=400)
+        
+class AttachmentView(View):
+
+    def get(self, request):
+        return render(request, "multiple_files/add_attachment.html")
+    
+    def post(self, request):
+        obj_id = int(request.POST.get('id', ''))
+        print request.FILES
+        for a_file in request.FILES.itervalues():
             instance = Attachment(
-                parent_id=parent_id,
-                file_name=a_file.name,
                 attachment=a_file
             )
+            instance.object_id = obj_id
             instance.save()
-
-        request.session['number_of_files'] = number + 1
-        return redirect("multiple_files:add_attachment_done")
-
-    return render(request, "multiple_files/add_attachment.html")
-
-
-def add_attachment_done(request):
-    return render_to_response('multiple_files/add_attachment_done.html',
-        context={"num_files": request.session["number_of_files"]})
+            
+        # TODO: check on errors
+        return JsonResponse({'status':'ok'})

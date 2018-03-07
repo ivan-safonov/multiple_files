@@ -24,8 +24,14 @@ def upload_to(instance, filename):
         filename_ext.lower()
     )
 
+# your object of form here
+class Object(models.Model):
+    name = models.CharField(max_length=18)
+    description = models.CharField(max_length=100)
+    # other yout fields here
 
 class Attachment(models.Model):
-    parent_id = models.CharField(max_length=18)
-    file_name = models.CharField(max_length=100)
+    object = models.ForeignKey(Object, on_delete=models.CASCADE, null=True)
     attachment = models.FileField(upload_to=upload_to)
+    
+
